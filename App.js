@@ -5,43 +5,46 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons,FontAwesome5 } from "@expo/vector-icons";
 
-const AI_API_KEY = "AIzaSyDD35kXvdr0Ez80QWjUsq7qvC0OdxKbVYg";
-const SUPPORT_EMAIL = "support@yourcompany.com";
-const PHONE_NUMBER = "+1-800-123-4567";
+const MED_API_KEY = "AIzaSyDD35kXvdr0Ez80QWjUsq7qvC0OdxKbVYg";
+const SUPPORT_EMAIL = "support@healthcare.com";
+const EMERGENCY_PHONE = "108";
+const HEALTHCARE_PHONE = "+1-800-300-1234";
+
 
 const storeAPIKey = async (key) => {
-  await SecureStore.setItemAsync("AI_API_KEY", key);
+  await SecureStore.setItemAsync("MED_API_KEY", key);
 };
 
 const getStoredAPIKey = async () => {
-  return await SecureStore.getItemAsync("AI_API_KEY");
+  return await SecureStore.getItemAsync("MED_API_KEY");
 };
-
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [apiKey, setApiKey] = useState(AI_API_KEY);
+  const [apiKey, setApiKey] = useState(MED_API_KEY);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState(null);
   const [quickActions] = useState([
-    { title: "Reset Password", id: "reset_pwd" },
-    { title: "Billing Help", id: "billing" },
-    { title: "Account Issues", id: "account" },
+    { title: "Symptom Check", id: "symptoms" },
+    { title: "Appointment", id: "appointment" },
+    { title: "Prescription", id: "prescription" },
+    { title: "Emergency", id: "emergency" },
   ]);
 
-  // Local knowledge base (client-side)
-  const localKB = {
-    reset_pwd: "To reset your password:\n1. Open Settings\n2. Tap 'Security'\n3. Select 'Reset Password'\n4. Check your email",
-    billing: "You can manage subscriptions in the Billing section of your account. Need more help?",
-    account: "Account issues require verification. Please provide your registered email.",
+  // Medical knowledge base
+  const medicalKB = {
+    symptoms: "For symptom analysis, please describe:\n1. Main symptoms\n2. Duration\n3. Severity\n4. Any existing conditions",
+    appointment: "To book an appointment:\n1. Visit our Patient Portal\n2. Choose 'Schedule Visit'\n3. Select provider & time",
+    prescription: "For prescription refills:\n1. Contact your pharmacy\n2. Allow 48hr processing\n3. Emergency? Call pharmacy directly",
+    emergency: "EMERGENCY ASSISTANCE:\n1. Call 911 immediately\n2. Stay on the line\n3. Follow operator instructions\n4. Inform emergency contacts",
   };
 
 
   const handleQuickAction = async (actionId) => {
-    const userMsg = { _id: Math.random(), text: localKB[actionId], user: { _id: 1 } };
+    const userMsg = { _id: Math.random(), text: medicalKB[actionId], user: { _id: 1 } };
     setMessages(prev => GiftedChat.append(prev, [userMsg]));
     
-    const aiResponse = await sendMessageToAI(localKB[actionId]);
+    const aiResponse = await sendMessageToAI(medicalKB[actionId]);
     const botMsg = createMessage(aiResponse, 2);
     setMessages(prev => GiftedChat.append(prev, [botMsg]));
   };
@@ -54,35 +57,39 @@ export default function App() {
         { 
           contents: [{
             parts: [{
-              text: `As customer support, respond to: "${text}". 
-              Company info: ${SUPPORT_EMAIL}, ${PHONE_NUMBER}. 
-              Keep responses brief and helpful.`
+              text: `As a medical assistant, respond to: "${text}". 
+              Important notes: 
+              - Always advise consulting a healthcare professional
+              - For emergencies, direct to call ${EMERGENCY_PHONE}
+              - Never provide diagnosis, only general guidance
+              - HIPAA compliant responses only
+              Keep responses professional and empathetic.`
             }]
           }]
         },
-        { params: { key: AI_API_KEY } }
+        { params: { key: MED_API_KEY } }
       );
-      return response.data.candidates[0]?.content?.parts[0]?.text || "Let me connect you to a human...";
+      return response.data.candidates[0]?.content?.parts[0]?.text || "Please contact your healthcare provider directly for assistance.";
     } catch (error) {
-      return "Please email us at " + SUPPORT_EMAIL;
+      return "For immediate assistance, please call " + EMERGENCY_PHONE;
     } finally {
       setIsTyping(false);
     }
   };
+
   useEffect(() => {
-    // Initial welcome message
     setMessages([
       {
         _id: 1,
-        text: "Hi! I'm your support assistant. How can I help you today?",
+        text: "Welcome to Healthcare Support. I'm your virtual medical assistant. Please remember I cannot provide diagnoses. How can I help?",
         createdAt: new Date(),
-        user: { _id: 2, name: "AI Assistant" },
+        user: { _id: 2, name: "Medical Assistant" },
       },
     ]);
 
     getStoredAPIKey().then((key) => {
       if (key) setApiKey(key);
-      else storeAPIKey(AI_API_KEY);
+      else storeAPIKey(MED_API_KEY);
       setLoading(false);
     });
   }, []);
@@ -93,19 +100,19 @@ export default function App() {
       {...props}
       wrapperStyle={{
         right: {
-          backgroundColor: "#007AFF",
+          backgroundColor: "#2196F3", // Medical blue
           marginVertical: 4,
           borderRadius: 12,
         },
         left: {
-          backgroundColor: "#E5E5EA",
+          backgroundColor: "#E3F2FD", // Light medical blue
           marginVertical: 4,
           borderRadius: 12,
         },
       }}
       textStyle={{
         right: { color: "white" },
-        left: { color: "black" },
+        left: { color: "#01579B" }, // Dark medical blue
       }}
     />
   );
@@ -158,10 +165,12 @@ export default function App() {
 
   const renderFooter = () => (
     <View style={styles.footer}>
-      {isTyping && <Text style={styles.typingText}>AI is typing...</Text>}
+      {isTyping && <Text style={styles.typingText}>Medical Assistant is responding...</Text>}
       {renderQuickActions()}
       <Text style={styles.supportInfo}>
-        Need human help? Email {SUPPORT_EMAIL} or call {PHONE_NUMBER}
+        For emergencies, call {EMERGENCY_PHONE} immediately.{'\n'}
+        Standard response time: 24-48hrs.{'\n'}
+        This is not a substitute for professional medical advice.
       </Text>
     </View>
   );
@@ -223,13 +232,40 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#E3F2FD",
   },
   inputContainer: {
     backgroundColor: "white",
     borderTopWidth: 1,
-    borderTopColor: "#E5E5EA",
+    borderTopColor: "#BBDEFB",
     padding: 8,
+  },
+  quickActionButton: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 20,
+    padding: 10,
+    margin: 4,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+  },
+  quickActionText: {
+    color: '#01579B',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  supportInfo: {
+    color: '#757575',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 16,
+  },
+  typingText: {
+    color: '#E91E63',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '500',
   },
   inputPrimary: {
     flexDirection: "row",
