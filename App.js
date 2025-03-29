@@ -6,6 +6,8 @@ import * as SecureStore from "expo-secure-store";
 import { Ionicons,FontAwesome5 } from "@expo/vector-icons";
 
 const AI_API_KEY = "AIzaSyDD35kXvdr0Ez80QWjUsq7qvC0OdxKbVYg";
+const SUPPORT_EMAIL = "support@yourcompany.com";
+const PHONE_NUMBER = "+1-800-123-4567";
 
 const storeAPIKey = async (key) => {
   await SecureStore.setItemAsync("AI_API_KEY", key);
@@ -21,7 +23,52 @@ export default function App() {
   const [apiKey, setApiKey] = useState(AI_API_KEY);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState(null);
+  const [quickActions] = useState([
+    { title: "Reset Password", id: "reset_pwd" },
+    { title: "Billing Help", id: "billing" },
+    { title: "Account Issues", id: "account" },
+  ]);
 
+  // Local knowledge base (client-side)
+  const localKB = {
+    reset_pwd: "To reset your password:\n1. Open Settings\n2. Tap 'Security'\n3. Select 'Reset Password'\n4. Check your email",
+    billing: "You can manage subscriptions in the Billing section of your account. Need more help?",
+    account: "Account issues require verification. Please provide your registered email.",
+  };
+
+
+  const handleQuickAction = async (actionId) => {
+    const userMsg = { _id: Math.random(), text: localKB[actionId], user: { _id: 1 } };
+    setMessages(prev => GiftedChat.append(prev, [userMsg]));
+    
+    const aiResponse = await sendMessageToAI(localKB[actionId]);
+    const botMsg = createMessage(aiResponse, 2);
+    setMessages(prev => GiftedChat.append(prev, [botMsg]));
+  };
+
+  const sendMessageToAI = async (text) => {
+    try {
+      setIsTyping(true);
+      const response = await axios.post(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        { 
+          contents: [{
+            parts: [{
+              text: `As customer support, respond to: "${text}". 
+              Company info: ${SUPPORT_EMAIL}, ${PHONE_NUMBER}. 
+              Keep responses brief and helpful.`
+            }]
+          }]
+        },
+        { params: { key: AI_API_KEY } }
+      );
+      return response.data.candidates[0]?.content?.parts[0]?.text || "Let me connect you to a human...";
+    } catch (error) {
+      return "Please email us at " + SUPPORT_EMAIL;
+    } finally {
+      setIsTyping(false);
+    }
+  };
   useEffect(() => {
     // Initial welcome message
     setMessages([
@@ -40,41 +87,7 @@ export default function App() {
     });
   }, []);
 
-  const sendMessageToAI = async (text) => {
-    try {
-      setIsTyping(true);
-      const response = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        { contents: [{ parts: [{ text }] }] },
-        { params: { key: apiKey } }
-      );
-      return response.data.candidates[0]?.content?.parts[0]?.text || "I'm sorry, I couldn't understand that.";
-    } catch (error) {
-      console.error("AI API Error:", error);
-      setError("Sorry, I'm having trouble connecting. Please try again later.");
-      return null;
-    } finally {
-      setIsTyping(false);
-    }
-  };
 
-  const onSend = useCallback(async (newMessages = []) => {
-    const userMessage = newMessages[0];
-    setMessages(prev => GiftedChat.append(prev, newMessages));
-
-    const aiResponse = await sendMessageToAI(userMessage.text);
-    if (aiResponse) {
-      const botMessage = {
-        _id: Math.random().toString(),
-        text: aiResponse,
-        createdAt: new Date(),
-        user: { _id: 2, name: "AI Assistant" },
-      };
-      setMessages(prev => GiftedChat.append(prev, [botMessage]));
-    }
-  }, []);
-
-  // UI Components
   const renderBubble = (props) => (
     <Bubble
       {...props}
@@ -96,6 +109,23 @@ export default function App() {
       }}
     />
   );
+
+  const createMessage = (text, userId) => ({
+    _id: Math.random(),
+    text,
+    createdAt: new Date(),
+    user: { _id: userId, name: userId === 2 ? "AI Assistant" : "User" },
+  });
+
+  const onSend = useCallback(async (newMessages = []) => {
+    const userMessage = newMessages[0];
+    setMessages(prev => GiftedChat.append(prev, newMessages));
+    
+    const aiResponse = await sendMessageToAI(userMessage.text);
+    const botMessage = createMessage(aiResponse, 2);
+    setMessages(prev => GiftedChat.append(prev, [botMessage]));
+  }, []);
+
 
   const renderInputToolbar = (props) => (
     <InputToolbar
@@ -127,9 +157,25 @@ export default function App() {
   };
 
   const renderFooter = () => (
-    <View style={styles.footerContainer}>
+    <View style={styles.footer}>
       {isTyping && <Text style={styles.typingText}>AI is typing...</Text>}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {renderQuickActions()}
+      <Text style={styles.supportInfo}>
+        Need human help? Email {SUPPORT_EMAIL} or call {PHONE_NUMBER}
+      </Text>
+    </View>
+  );
+  const renderQuickActions = () => (
+    <View style={styles.quickActionsContainer}>
+      {quickActions.map(action => (
+        <TouchableOpacity
+          key={action.id}
+          style={styles.quickActionButton}
+          onPress={() => handleQuickAction(action.id)}
+        >
+          <Text style={styles.quickActionText}>{action.title}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 
@@ -152,6 +198,7 @@ export default function App() {
         renderSend={renderSend}
         renderAvatar={renderAvatar}
         renderFooter={renderFooter}
+        renderQuickActions={renderQuickActions}
         placeholder="Type your message here..."
         alwaysShowSend
         scrollToBottom
@@ -213,5 +260,37 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#FF3B30",
     fontSize: 14,
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 8,
+  },
+  quickActionButton: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 20,
+    padding: 10,
+    margin: 4,
+  },
+  quickActionText: {
+    color: '#1976D2',
+    fontSize: 14,
+  },
+  footer: {
+    padding: 10,
+    borderTopWidth: 1,
+    borderColor: '#EEE',
+  },
+  supportInfo: {
+    color: '#666',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  typingText: {
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 8,
   },
 });
