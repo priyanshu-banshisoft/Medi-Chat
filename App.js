@@ -74,15 +74,31 @@ export default function App() {
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
         {
           contents: [{
-            parts: [{
-              text: `As a medical assistant or mini doctor(that can prescrib medician ), respond to: "${text}". 
-              Important notes: 
-              - Always advise consulting a healthcare professional and disease prediction
-              - For emergencies, direct to call ${EMERGENCY_PHONE}
-              - Never provide diagnosis, only general guidance
-              - HIPAA compliant responses only
-              Keep responses professional and empathetic. in max 4 to 5 line text also remove **`
-            }]
+            parts: [
+              {
+                text: `You are a medical information assistant. Respond to: "${text}".
+
+            # SAFETY RULES:
+            1. NEVER diagnose/prescribe
+            2. If unsure: "Consult a doctor"
+            3. Use simple language (8th grade level)
+            
+            # RESPONSE FORMAT:
+            Possible Considerations:
+            • 3 general possibilities
+            
+            Recommended Actions:
+            • 2-3 general steps
+            
+            Warning: ${text.includes('child') ? "Pediatric cases need urgent professional evaluation" : "Monitor symptom progression"}
+            
+            # EXAMPLE:
+            User: "Headache and fever"
+            Response: "Possible Considerations: • Viral infection • Tension headache • Dehydration
+            Recommended Actions: • Rest/hydration • Monitor temperature • Consult if persists >48hrs
+            This is not medical advice - always consult a healthcare provider"`
+            }
+          ]
           }]
         },
         { params: { key: MED_API_KEY } }
@@ -190,7 +206,6 @@ export default function App() {
   const renderFooter = () => (
     <View style={styles.footer}>
       {isTyping && <Text style={styles.typingText}>Medical Assistant is responding...</Text>}
-      {renderQuickActions()}
       <Text style={styles.supportInfo}>
         For emergencies, call {EMERGENCY_PHONE} immediately.{'\n'}
         Standard response time: 24-48hrs.{'\n'}
