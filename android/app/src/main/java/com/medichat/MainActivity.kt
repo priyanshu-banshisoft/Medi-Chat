@@ -1,4 +1,4 @@
-package com.priyanshu.banshisoftware.AIChatbot
+package com.medichat
 
 import android.os.Build
 import android.os.Bundle
