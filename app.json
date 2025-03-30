@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "AIChatbot",
-    "slug": "AIChatbot",
+    "slug": "Medi-Chat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app_icon.png",

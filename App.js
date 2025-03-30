@@ -63,7 +63,7 @@ export default function App() {
               - For emergencies, direct to call ${EMERGENCY_PHONE}
               - Never provide diagnosis, only general guidance
               - HIPAA compliant responses only
-              Keep responses professional and empathetic.`
+              Keep responses professional and empathetic. in max 4 to 5 line text also remove **`
             }]
           }]
         },
@@ -100,23 +100,44 @@ export default function App() {
       {...props}
       wrapperStyle={{
         right: {
-          backgroundColor: "#2196F3", // Medical blue
+          backgroundColor: "#FFFFFF",
           marginVertical: 4,
-          borderRadius: 12,
+          borderRadius: 15,
+          borderWidth: 1,
+          borderColor: "#E0E0E0",
         },
         left: {
-          backgroundColor: "#E3F2FD", // Light medical blue
+          backgroundColor: "#E8F5E9",
           marginVertical: 4,
-          borderRadius: 12,
+          borderRadius: 15,
+          borderWidth: 1,
+          borderColor: "#C8E6C9",
         },
       }}
       textStyle={{
-        right: { color: "white" },
-        left: { color: "#01579B" }, // Dark medical blue
+        right: { color: "#2E7D32" },
+        left: { color: "#1B5E20" },
       }}
     />
   );
 
+  const renderAvatar = (props) => {
+    const { currentMessage } = props;
+    const isAI = currentMessage.user._id === 2;
+    
+    return (
+      <View style={[
+        styles.avatarContainer,
+        isAI ? styles.aiAvatar : styles.userAvatar
+      ]}>
+        {isAI ? (
+          <FontAwesome5 name="user-nurse" size={24} color="#FFFFFF" />
+        ) : (
+          <Ionicons name="person" size={24} color="#FFFFFF" />
+        )}
+      </View>
+    );
+  };
   const createMessage = (text, userId) => ({
     _id: Math.random(),
     text,
@@ -147,21 +168,6 @@ export default function App() {
       <Ionicons name="send" size={24} color="#007AFF" style={styles.sendButton} />
     </Send>
   );
-
-  const renderAvatar = (props) => {
-    const { currentMessage } = props;
-    const isAI = currentMessage.user._id === 2;
-    
-    return (
-      <View style={styles.avatarContainer}>
-        {isAI ? (
-          <FontAwesome5 name="robot" size={24} color="#007AFF" />
-        ) : (
-          <Ionicons name="person" size={24} color="#007AFF" />
-        )}
-      </View>
-    );
-  };
 
   const renderFooter = () => (
     <View style={styles.footer}>
@@ -197,8 +203,13 @@ export default function App() {
   }
 
   return (
-   
-      <GiftedChat
+    <View style={styles.container}>
+      <View style={styles.header}>
+    <FontAwesome5 name="hospital-symbol" size={24} color="#2196F3" />
+    <Text style={styles.headerText}>Medical Support Assistant</Text>
+  </View>
+
+  <GiftedChat
         messages={messages}
         onSend={messages => onSend(messages)}
         user={{ _id: 1 }}
@@ -219,6 +230,9 @@ export default function App() {
           right: { color: "#666" },
         }}
       />
+    </View>
+    
+  
   
   );
 }
@@ -226,7 +240,83 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F5FDFF",
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderColor: '#E0F7FA',
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2196F3',
+    marginLeft: 12,
+  },
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  aiAvatar: {
+    backgroundColor: "#2196F3",
+    borderWidth: 2,
+    borderColor: "#1976D2",
+  },
+  userAvatar: {
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#388E3C",
+  },
+  quickActionButton: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 20,
+    padding: 12,
+    margin: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2196F3',
+  },
+  footer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderColor: '#BBDEFB',
+    backgroundColor: '#F5FDFF',
+  },
+  inputContainer: {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E0F7FA",
+    padding: 8,
+    borderRadius: 25,
+    margin: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  supportInfo: {
+    color: '#2196F3',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  typingText: {
+    color: '#2196F3',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
