@@ -5,7 +5,9 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
-const MED_API_KEY = "AIzaSyDD35kXvdr0Ez80QWjUsq7qvC0OdxKbVYg";
+import {
+  MED_API_KEY,
+} from '@env';
 const SUPPORT_EMAIL = "support@healthcare.com";
 const EMERGENCY_PHONE = "1800-300-1234";
 const HEALTHCARE_PHONE = "1800-300-1234";
