@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/app_icon.png",
     "userInterfaceStyle": "light",
+    "displayName": "Medi-Chat",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/app_icon.png",
@@ -20,7 +21,7 @@
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.priyanshu.banshisoftware.AIChatbot"
+      "package": "com.medichat"
     },
     "web": {
       "favicon": "./assets/favicon.png"
