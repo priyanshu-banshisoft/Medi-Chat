@@ -3,12 +3,12 @@ import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity, KeyboardAv
 import { GiftedChat, Bubble, InputToolbar, Send } from "react-native-gifted-chat";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { Ionicons,FontAwesome5 } from "@expo/vector-icons";
-
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import * as Linking from 'expo-linking';
 const MED_API_KEY = "AIzaSyDD35kXvdr0Ez80QWjUsq7qvC0OdxKbVYg";
 const SUPPORT_EMAIL = "support@healthcare.com";
-const EMERGENCY_PHONE = "108";
-const HEALTHCARE_PHONE = "+1-800-300-1234";
+const EMERGENCY_PHONE = "1800-300-1234";
+const HEALTHCARE_PHONE = "1800-300-1234";
 
 
 const storeAPIKey = async (key) => {
@@ -36,17 +36,33 @@ export default function App() {
     symptoms: "For symptom analysis, please describe:\n1. Main symptoms\n2. Duration\n3. Severity\n4. Any existing conditions",
     appointment: "To book an appointment:\n1. Visit our Patient Portal\n2. Choose 'Schedule Visit'\n3. Select provider & time",
     prescription: "For prescription refills:\n1. Contact your pharmacy\n2. Allow 48hr processing\n3. Emergency? Call pharmacy directly",
-    emergency: "EMERGENCY ASSISTANCE:\n1. Call 911 immediately\n2. Stay on the line\n3. Follow operator instructions\n4. Inform emergency contacts",
+    emergency: "EMERGENCY ASSISTANCE:\n1. Call "+EMERGENCY_PHONE+ " immediately\n2. Stay on the line\n3. Follow operator instructions\n4. Inform emergency contacts",
+  };
+
+  const handleEmergencyProtocol = async () => {
+    try {
+      await Linking.openURL(`tel:${EMERGENCY_PHONE}`);
+    } catch (error) {
+      setMessages(prev => GiftedChat.append(prev, [createMessage(
+        "Failed to initiate emergency call. Please dial manually.",
+        2
+      )]));
+    }
   };
 
 
   const handleQuickAction = async (actionId) => {
     const userMsg = { _id: Math.random(), text: medicalKB[actionId], user: { _id: 1 } };
-    setMessages(prev => GiftedChat.append(prev, [userMsg]));
     
-    const aiResponse = await sendMessageToAI(medicalKB[actionId]);
-    const botMsg = createMessage(aiResponse, 2);
-    setMessages(prev => GiftedChat.append(prev, [botMsg]));
+    if (actionId == 'emergency') {
+      handleEmergencyProtocol()
+    } else {
+      setMessages(prev => GiftedChat.append(prev, [userMsg]));
+      const aiResponse = await sendMessageToAI(medicalKB[actionId]);
+      const botMsg = createMessage(aiResponse, 2);
+      setMessages(prev => GiftedChat.append(prev, [botMsg]));
+    }
+
   };
 
   const sendMessageToAI = async (text) => {
@@ -54,12 +70,12 @@ export default function App() {
       setIsTyping(true);
       const response = await axios.post(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        { 
+        {
           contents: [{
             parts: [{
-              text: `As a medical assistant, respond to: "${text}". 
+              text: `As a medical assistant or mini doctor(that can prescrib medician ), respond to: "${text}". 
               Important notes: 
-              - Always advise consulting a healthcare professional
+              - Always advise consulting a healthcare professional and disease prediction
               - For emergencies, direct to call ${EMERGENCY_PHONE}
               - Never provide diagnosis, only general guidance
               - HIPAA compliant responses only
@@ -124,7 +140,7 @@ export default function App() {
   const renderAvatar = (props) => {
     const { currentMessage } = props;
     const isAI = currentMessage.user._id === 2;
-    
+
     return (
       <View style={[
         styles.avatarContainer,
@@ -148,7 +164,7 @@ export default function App() {
   const onSend = useCallback(async (newMessages = []) => {
     const userMessage = newMessages[0];
     setMessages(prev => GiftedChat.append(prev, newMessages));
-    
+
     const aiResponse = await sendMessageToAI(userMessage.text);
     const botMessage = createMessage(aiResponse, 2);
     setMessages(prev => GiftedChat.append(prev, [botMessage]));
@@ -205,11 +221,11 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-    <FontAwesome5 name="hospital-symbol" size={24} color="#2196F3" />
-    <Text style={styles.headerText}>Medical Support Assistant</Text>
-  </View>
+        <FontAwesome5 name="hospital-symbol" size={24} color="#2196F3" />
+        <Text style={styles.headerText}>Medical Support Assistant</Text>
+      </View>
 
-  <GiftedChat
+      <GiftedChat
         messages={messages}
         onSend={messages => onSend(messages)}
         user={{ _id: 1 }}
@@ -231,9 +247,9 @@ export default function App() {
         }}
       />
     </View>
-    
-  
-  
+
+
+
   );
 }
 
