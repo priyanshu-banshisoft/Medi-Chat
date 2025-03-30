@@ -89,5 +89,9 @@ npx expo doctor
 npx expo install --fix
 ```
 
+## App Preview
+
+| <img src="screencap.png"> | <img src="screencap1.png" width="250"> 
+
 ## License
 MIT License - See [LICENSE](LICENSE)
