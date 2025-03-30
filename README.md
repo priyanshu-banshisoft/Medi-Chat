@@ -2,7 +2,6 @@
 
 ![MediChat Demo](demo.gif)
 
-A HIPAA-compliant AI-powered medical assistant app built with React Native and Google Gemini API.
 
 ## Features
 
@@ -23,7 +22,7 @@ A HIPAA-compliant AI-powered medical assistant app built with React Native and G
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/medichat.git
+git clone https://github.com/priyanshu-banshisoft/medichat.git
 cd medichat
 ```
 
@@ -38,8 +37,6 @@ npx expo install expo-secure-store expo-linking react-native-dotenv
 Create `.env` file in root directory:
 ```env
 MED_API_KEY=your_google_api_key
-EMERGENCY_PHONE=1800-300-1234
-SUPPORT_EMAIL=support@healthcare.com
 ```
 
 ### 4. Get API Keys
