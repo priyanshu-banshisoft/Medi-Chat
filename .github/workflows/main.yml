@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: 18
       - run: npm install
-      - run: cd android && ./gradlew assembleRelease
+      - run: cd android && chmod +x gradlew &&  ./gradlew assembleRelease
